@@ -1,5 +1,5 @@
 package com.example.jfxchat.client;
-
+//
 import com.example.jfxchat.Command;
 import javafx.application.Platform;
 
