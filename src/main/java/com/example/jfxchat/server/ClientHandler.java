@@ -6,6 +6,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.sql.SQLException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +20,7 @@ public class ClientHandler {
     private AuthService authService;
     private ScheduledExecutorService scheduler;
     private Thread socketThread;
+    private RenameService renameService = new RenameServiceImpl();
 
     public ClientHandler(Socket socket, ChatServer server, AuthService authService) {
         try {
@@ -138,6 +140,15 @@ public class ClientHandler {
                 Command command = Command.getCommand(message);
                 if (command == Command.END) {
                         break;
+                }
+                if (command == Command.RENAME){
+                    String[] params = command.parse(message);
+                    try {
+                        renameService.rename(params[0],params[1]);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                    continue;
                 }
                 if (command == Command.PRIVATE_MESSAGE){
                     String[] params = command.parse(message);
