@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -44,6 +45,10 @@ public class ChatServer {
     }
 
     public void broadcast(Command command, String message) {
+        if(command == Command.MESSAGE) {
+            LocalHistory.write(message);
+        }
+
         for(ClientHandler client : clients.values() ){
             client.sendMessage(command, message);
         }
@@ -66,5 +71,13 @@ public class ChatServer {
         }
         clientTo.sendMessage(Command.MESSAGE, "От "  + from.getNick() + ": " + message);
         from.sendMessage(Command.MESSAGE,"Участнику " + nickTo + ": " + message);
+    }
+
+    public void sendHistoryMessage(ClientHandler self, List<UserMessage> messages) {
+        System.out.println("sendHistoryMessage");
+        for(UserMessage message : messages) {
+            System.out.println("message: " + message.getMessage());
+            self.sendMessage(Command.MESSAGE, message.getMessage());
+        }
     }
 }

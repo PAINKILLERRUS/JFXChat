@@ -81,6 +81,7 @@ public class ClientHandler {
                             this.nick = nick;
                             server.broadcast(Command.MESSAGE, "Пользователь " + nick + " зашел в чат");
                             server.subscribe(this);
+                            server.sendHistoryMessage(this, LocalHistory.read());
                             stopTimer();
                             break;
                         } else {

@@ -6,4 +6,6 @@ module com.example.jfxchat {
 
     exports com.example.jfxchat.client;
     opens com.example.jfxchat.client to javafx.fxml;
+    exports com.example.jfxchat.server;
+    opens com.example.jfxchat.server to javafx.fxml;
 }
