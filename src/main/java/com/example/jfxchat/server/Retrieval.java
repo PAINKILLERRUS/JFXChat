@@ -4,8 +4,6 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
 
-import static java.lang.System.in;
-
 public class Retrieval {
     private static Path file = Path.of("files","history.txt");
     private static BufferedOutputStream out;

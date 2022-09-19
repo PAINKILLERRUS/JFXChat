@@ -7,6 +7,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.sql.SQLException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +21,7 @@ public class ClientHandler {
     private AuthService authService;
     private ScheduledExecutorService scheduler;
     private Thread socketThread;
+    private ExecutorService executorService;
     private RenameService renameService = new RenameServiceImpl();
 
     public ClientHandler(Socket socket, ChatServer server, AuthService authService) {
@@ -29,7 +31,8 @@ public class ClientHandler {
             this.authService = authService;
             this.in = new DataInputStream(socket.getInputStream());
             this.out = new DataOutputStream(socket.getOutputStream());
-            socketThread = new Thread(()-> {
+            executorService = Executors.newCachedThreadPool();
+            executorService.execute(()-> {
                 try {
                     startTimer();
                     authenticate();
@@ -39,16 +42,17 @@ public class ClientHandler {
                     closeConnection();
                 }
             });
-            socketThread.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        executorService.shutdown();
     }
 
     private void startTimer() {
         scheduler = Executors.newScheduledThreadPool(1);
         scheduler.schedule(() -> {
             socketThread.interrupt();
+            executorService.shutdownNow();
             sendMessage(Command.TIMEOUT, "Время для авторизации вышло!");
         }, 120, TimeUnit.SECONDS);
         scheduler.shutdown();
