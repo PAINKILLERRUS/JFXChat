@@ -1,5 +1,5 @@
 package com.example.jfxchat.server;
-
+//
 import java.io.Closeable;
 
 public interface AuthService extends Closeable {

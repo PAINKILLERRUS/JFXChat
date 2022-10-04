@@ -1,5 +1,5 @@
 package com.example.jfxchat;
-
+//
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
@@ -65,6 +65,13 @@ public enum Command {
         public String[] parse(String commandText) {
             String[] split = commandText.split(TOKEN_DELIMITER);
             return split;
+        }
+    },
+
+    RENAME("/rename"){
+        public String[] parse(String commandText){
+            String[] split = commandText.split(TOKEN_DELIMITER);
+            return new String[]{split[1],split[2]};
         }
     };
 

@@ -1,11 +1,13 @@
 package com.example.jfxchat.server;
-
+//
 import com.example.jfxchat.Command;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.sql.SQLException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +21,8 @@ public class ClientHandler {
     private AuthService authService;
     private ScheduledExecutorService scheduler;
     private Thread socketThread;
+    private ExecutorService executorService;
+    private RenameService renameService = new RenameServiceImpl();
 
     public ClientHandler(Socket socket, ChatServer server, AuthService authService) {
         try {
@@ -27,7 +31,8 @@ public class ClientHandler {
             this.authService = authService;
             this.in = new DataInputStream(socket.getInputStream());
             this.out = new DataOutputStream(socket.getOutputStream());
-            socketThread = new Thread(()-> {
+            executorService = Executors.newCachedThreadPool();
+            executorService.execute(()-> {
                 try {
                     startTimer();
                     authenticate();
@@ -37,16 +42,17 @@ public class ClientHandler {
                     closeConnection();
                 }
             });
-            socketThread.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        executorService.shutdown();
     }
 
     private void startTimer() {
         scheduler = Executors.newScheduledThreadPool(1);
         scheduler.schedule(() -> {
             socketThread.interrupt();
+            executorService.shutdownNow();
             sendMessage(Command.TIMEOUT, "Время для авторизации вышло!");
         }, 120, TimeUnit.SECONDS);
         scheduler.shutdown();
@@ -79,6 +85,7 @@ public class ClientHandler {
                             this.nick = nick;
                             server.broadcast(Command.MESSAGE, "Пользователь " + nick + " зашел в чат");
                             server.subscribe(this);
+                            server.sendHistoryMessage(this, LocalHistory.read());
                             stopTimer();
                             break;
                         } else {
@@ -138,6 +145,15 @@ public class ClientHandler {
                 Command command = Command.getCommand(message);
                 if (command == Command.END) {
                         break;
+                }
+                if (command == Command.RENAME){
+                    String[] params = command.parse(message);
+                    try {
+                        renameService.rename(params[0],params[1]);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                    continue;
                 }
                 if (command == Command.PRIVATE_MESSAGE){
                     String[] params = command.parse(message);

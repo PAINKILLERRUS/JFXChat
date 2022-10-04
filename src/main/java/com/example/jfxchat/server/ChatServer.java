@@ -1,11 +1,12 @@
 package com.example.jfxchat.server;
-
+//
 import com.example.jfxchat.Command;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -21,10 +22,11 @@ public class ChatServer {
         try(ServerSocket serverSocket = new ServerSocket(8190);
             AuthService authService = new InMemoryAuthService()){
             while (true) {
-                System.out.println("Ожидаю подключения...");
+                ChatLog.LOGGER.info("Ожидаю подключения...");
                 Socket socket = serverSocket.accept();
+                ChatLog.LOGGER.info("Сервер запущен!");
                 new ClientHandler(socket, this, authService);
-                System.out.println("Клиент подключен.");
+                ChatLog.LOGGER.info("Клиент подлюклеч!");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -44,8 +46,13 @@ public class ChatServer {
     }
 
     public void broadcast(Command command, String message) {
+        if(command == Command.MESSAGE) {
+            LocalHistory.write(message);
+        }
+
         for(ClientHandler client : clients.values() ){
             client.sendMessage(command, message);
+            ChatLog.LOGGER.info("Клиент прислал сообщение!");
         }
     }
 
@@ -66,5 +73,13 @@ public class ChatServer {
         }
         clientTo.sendMessage(Command.MESSAGE, "От "  + from.getNick() + ": " + message);
         from.sendMessage(Command.MESSAGE,"Участнику " + nickTo + ": " + message);
+    }
+
+    public void sendHistoryMessage(ClientHandler self, List<UserMessage> messages) {
+        System.out.println("sendHistoryMessage");
+        for(UserMessage message : messages) {
+            System.out.println("message: " + message.getMessage());
+            self.sendMessage(Command.MESSAGE, message.getMessage());
+        }
     }
 }

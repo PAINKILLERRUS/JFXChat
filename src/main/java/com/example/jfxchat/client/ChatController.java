@@ -1,15 +1,13 @@
 package com.example.jfxchat.client;
-
+//
 import com.example.jfxchat.Command;
-import javafx.collections.ObservableList;
+import com.example.jfxchat.server.ChatLog;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
 public class ChatController {
@@ -49,7 +47,7 @@ public class ChatController {
                 "Проверьте, что сервер запущен и доступен.",
                 new ButtonType("Попробовать снова.", ButtonBar.ButtonData.OK_DONE),
                 new ButtonType("Выйти.", ButtonBar.ButtonData.CANCEL_CLOSE));
-        alert.setTitle("Ошибка подключения!");
+        ChatLog.LOGGER.error("Ошибка подключения!");
         Optional<ButtonType> answer = alert.showAndWait();
         Boolean isExit = answer.map(select -> select.getButtonData().isCancelButton()).orElse(false);
         if (isExit){
@@ -88,7 +86,7 @@ public class ChatController {
     public void showError(String errorMessage) {
         Alert alert = new Alert(Alert.AlertType.ERROR, errorMessage,
                 new ButtonType("OK", ButtonBar.ButtonData.OK_DONE));
-        alert.setTitle("Error!");
+        ChatLog.LOGGER.error("Error!");
         alert.showAndWait();
 
     }
